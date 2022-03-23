@@ -51,6 +51,7 @@ class grid {
 		this.difficulty = 0;
 		this.scoreMultiplier = 1;
 		this.turnsLeft = 40;
+		this.turnsMultiplier = 1;
 		//****wolves
 		this.wolvesActive = 0;
 		this.wolvesMovePercent = 0;
@@ -152,15 +153,19 @@ class grid {
 		this.cow.setCoord(x*this.space+this.offset, y*this.space+this.offset);
 	}
 	cowMove(x, y) {
+		if((x < 0) || (x > this.x-1) || (y < 0) || (y > this.y-1)) {
+			console.log("OUT OF BOUNDS");
+			return 0;
+		}
 		var destX = x*this.space+this.offset;
 		var destY = y*this.space+this.offset;
 		if(this.cow.moveTo(destX, destY, this.stepSize)){
 			this.cowSet(x, y, 1);
-			return true;
+			return 2;
 		}
 		this.cow.walkingAnimation();
 		//console.log("Cow position: ", this.cow.x, this.cow.y);
-		return false;
+		return 1;
 	}
 	cowMoveDir(x, y) {
 		//this.cowMove();
@@ -609,20 +614,24 @@ class grid {
 			this.grasses[y][x].x = x*this.space+this.offset;
 			//this.grasses[y][x].setColor(0);
 			console.log("end", x, y, this.grasses[y][x].x, this.grasses[y][x].spawn);
+			return true;
+		}
+		else {
+			return false;
 		}
 	}
 	markResolve() {
 		var earned = 0;
 		//this.score += this.grassEaten * this.scoreMultiplier;
 		for(var i = 0; i <= this.grassEaten; i++) {
-			earned += i * this.scoreMultiplier;
+			earned += i;
 		}
-		this.grassEaten = 0;
-		this.score += earned;
-		this.turnsLeft += earned;
+		this.score += earned * this.scoreMultiplier;
+		this.turnsLeft += this.grassEaten * this.turnsMultiplier;// * this.turnsMultiplier;
 		if(this.turnsLeft > 40) {
 			this.turnsLeft = 40;
 		}
+		this.grassEaten = 0;
 	}
 
 	turnsDecrement() {
@@ -633,7 +642,7 @@ class grid {
 		}
 	}
 
-	manageDifficulty(){
+	manageDifficultyOld(){
 		if(this.score > this.scoreThreshold[this.difficulty]) {
 			if(this.difficulty < this.scoreThreshold.length - 1) {
 				this.difficulty += 1;
@@ -685,5 +694,33 @@ class grid {
 			default:
 				break;	
 		}
+	}
+	manageDifficulty() {
+		//WOLVES
+		/*
+		var wolfThreshold = 500*this.wolvesActive;
+		if(this.score > wolfThreshold) {
+			this.wolvesActive += 1;
+		}
+		*/
+		var wolfThreshold = 500;
+		this.wolvesActive = Math.floor(this.score/wolfThreshold);
+		if(this.wolvesActive > 4) {
+			this.wolvesActive = 4;
+		}
+		this.wolvesMovePercent = 3000 + Math.floor(this.score - wolfThreshold*this.wolvesActive)*10;
+		if(this.wolvesMovePercent > 7750) {
+			this.wolvesMovePercent = 7750;
+		}
+		//GRASS
+		this.grassesActive = 1 + Math.floor(this.score/300);
+		if(this.grassesActive > 8) {
+			this.grassesActive = 8;
+		}
+		//AMMO
+		this.gunAmmoPercent = 500 + 250 * this.wolvesActive;
+		//MULTIPLIERS
+		this.scoreMultiplier = 1 + this.wolvesActive * this.grassesActive;
+		this.turnsMultiplier = Math.ceil((this.wolvesActive/2 + this.grassesActive/4));
 	}
 }

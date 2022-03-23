@@ -1,5 +1,7 @@
 var c = document.getElementById("myCanvas");
 var ctx = c.getContext("2d");
+c.height = 600;
+c.width = 800;
 
 var color = "#3E9BD9";
 var r = parseInt("0x"+color.slice(1,3));
@@ -13,8 +15,10 @@ ctx.fillStyle = col;
 ctx.rect(0, 0, 400, 32);
 ctx.fill();
 
+color = "#00FFFF";
+
 let img = new images();//(document.getElementById("myCanvas"));
-img.setCanvas(document.getElementById("myCanvas"));
+img.setCanvas(document.getElementById("myCanvas"), 400, 300);
 //console.log("adding");
 img.addSource('images.png');
 console.log("done");
@@ -160,10 +164,16 @@ var entry = setInterval(function(){
 					gameState = 2;
 				}
 				if((moveX + moveY) != 0){
-					if(testGrid.cowMove(testGrid.cowX + moveX, testGrid.cowY + moveY)) {
-						moveX = 0;
-						moveY = 0;
-						//gameState = 2;
+					switch (testGrid.cowMove(testGrid.cowX + moveX, testGrid.cowY + moveY)) {
+						case 0:
+							moveX = 0;
+							moveY = 0;
+							gameState = 0;
+							break;
+						case 2:
+							moveX = 0;
+							moveY = 0;
+							break;
 					}
 				}
 				else if(shiftC != 0) {
@@ -180,9 +190,14 @@ var entry = setInterval(function(){
 				}
 				else if(eating != 0) {
 					if(eating === 1) {
-						testGrid.markGrass(testGrid.cowX, testGrid.cowY);
-						testGrid.markResolve();
-						eating += 1;
+						if(testGrid.markGrass(testGrid.cowX, testGrid.cowY)) {
+							testGrid.markResolve();
+							eating += 1;
+						}
+						else {
+							eating = 0;
+							gameState = 0;
+						}
 					}
 					else if (eating > 32) {
 						eating = 0;
@@ -282,12 +297,30 @@ var entry = setInterval(function(){
 		}
 
 		//clearInterval(entry);
-		ctx.clearRect(0, 0, 400, 300);
+		//ctx.clearRect(0, 0, 400, 300);
+		img.clearCanvas();
 		img.clearQueue();
+		img.dynamicResize();
 
 		var x = 200;
 		var width = 32;
 		var height = 32;
+
+		r = parseInt("0x"+color.slice(1,3));
+		g = parseInt("0x"+color.slice(3,5));
+		b = parseInt("0x"+color.slice(5,7));
+		//if(g > 0) {g -= 1;}
+		//if(b > 0) {b -= 1;}
+		color = "#" + r.toString(16).padStart(2, "0") + g.toString(16).padStart(2, "0") + b.toString(16).padStart(2, "0");
+
+		/*
+		ctx.beginPath();
+		ctx.fillStyle = color;
+		ctx.rect(0, 0, 400, 32);
+		ctx.fill();
+		*/
+		img.drawRect(0, 0, 400, 32, 0, r, g, b);
+		
 		drawFence(img);
 		//drawSprite(img, 0, 0, x, 100, 0);
 		for(var i = 0; i < 40; i++) {
@@ -300,7 +333,9 @@ var entry = setInterval(function(){
 
 		//DRAW VARIOUS UI - TESTING
 		//DRAW LEVEL
-		drawLevel(img, testGrid.difficulty);
+		//drawLevel(img, testGrid.difficulty);
+		drawBonus(img, testGrid.scoreMultiplier);
+		drawTurnBonus(img, testGrid.turnsMultiplier);
 		//DRAW TURNS LEFT
 		drawTurnsLeft(img, testGrid.turnsLeft);
 		//DRAW WOLF TRACK
@@ -323,6 +358,7 @@ var entry = setInterval(function(){
 			drawSprite(img, 6+i, 0, 352, 48 + (16*i));
 		}
 		*/
+		/*
 		drawDeadCow(img,testGrid.cow, gridX, gridY);
 		//TEST SPRITES
 		testWolf.setCoord(0, 24);
@@ -337,10 +373,10 @@ var entry = setInterval(function(){
 		drawSprite(img, 2, 6, testWolf.x, testWolf.y+32);
 		drawSprite(img, 0, 8, 0, 128-16);
 		drawSprite(img, 0, 9, 0, 128);
-
+		*/
 		//testGrass.setCoord(0, 24);
 		//testGrass.explodingAnimation();
-		drawSprite(img, testGrass.spriteSet, testGrass.spriteNumber, testGrass.x, testGrass.y);
+		//drawSprite(img, testGrass.spriteSet, testGrass.spriteNumber, testGrass.x, testGrass.y);
 		/*
 		for(var j = 0; j < testGrid.y; j++) {
 			for(var i = 0; i < testGrid.x; i++) {

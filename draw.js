@@ -124,6 +124,16 @@ function drawLevel(img, lvl) {
 	drawBG(img, 37, 43, 2);
 	drawNumber(img, lvl, 44, 2, 2);
 }
+function drawBonus(img, bonus) {
+	drawWord(img, "bonus", 40, 1);
+	drawBG(img, 37, 41, 2);
+	drawNumber(img, bonus, 42, 2, 2);
+}
+function drawTurnBonus(img, bonus) {
+	drawWord(img, "turns", 5, 1);
+	drawBG(img, 37, 6, 2);
+	drawNumber(img, bonus, 7, 2, 2);
+}
 //*WOLF TRACK
 function moveTrack(track, shells, active) {
 	var equal = 0;
