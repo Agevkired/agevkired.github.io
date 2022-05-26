@@ -1,5 +1,6 @@
 var cowLife = new sprite();
 var cowLifeWalk = [1, 3, 2, 3];
+var cowLifeEating = [4, 0, 5, 0, 6];
 var cowDeathY = 0;
 var wolfTrack = new sprite(320, 48);
 var wolfTrackSleep = [0, 1];
@@ -22,16 +23,138 @@ for(var i = 0; i < 3; i++) {
 }
 wolfTrack.spriteSet = 2;
 wolfTrack.spriteNumber = 0;
+//
 var shellGained = new sprite(wolfTrack.x, wolfTrack.y);
 shellGained.setCoord(wolfTrack.x, wolfTrack.y);
 shellGained.spriteSet = 2;
 shellGained.spriteNumber = 6;
+//
 var shellSpawn = new sprite(400,400);
 shellSpawn.spriteSet = 5;
 var spawnFrames = [0, 1, 2, 3, 4, 5, 6];
+//
+var titleCowO = new sprite(400,400);
+
 
 function drawTrackSetup() {
 
+}
+//*TITLE
+var puzzleScroll = -95;
+function drawTitle(img, state, x1 , y1, x2 = x1 - 22, y2 = y1 + 40) {
+	var t1x = 16 * 6, t1y = 16 * 6; //COW position on sprite sheet
+	//cow = 128x32
+	var cowPosition = [0, 28, 58, 76];
+	var cowLength  = [28, 30, 28, 42];
+	var t2x = 16 * 6, t2y = 16 * 8; //PUZZLE position on sprite sheet
+	//176x32              P   U   Z   Z   L    E
+	var puzzlePosition = [0, 27, 57, 86, 115, 143, 170];
+	var puzzleLength  = [27, 30, 29, 29, 28,  27, 6];
+
+	
+	//img.addQueue(0, t2x, t2y, 176, 32, x2, y2, 176, 32);
+	if(state === 1000) {
+		//cow
+		for(var i = 0; i < cowLength.length-1; i++) {
+			drawSprite(img, shellSpawn.spriteSet, shellSpawn.spriteNumber, x1 + cowPosition[i] + Math.round(cowLength[i]/2)-8, y1 + 8);
+		}
+		//puzzle
+		for(var i = 0; i < puzzlePosition.length-1; i++) {
+			var offset;
+			if(puzzleScroll <= -puzzlePosition[i+1]) {
+				offset = 170;
+			}
+			else {
+				offset = 0;
+			}
+			drawSprite(img, shellSpawn.spriteSet, shellSpawn.spriteNumber, x2 + puzzlePosition[i] + Math.round(puzzleLength[i]/2)-8 + puzzleScroll + offset, y2 + 8);
+		}
+	}
+	else {
+		img.addQueue(0, t1x, t1y, 128, 32, x1, y1, 128, 32);
+		/*
+		for(var i = 0; i < cowLength.length; i++) {
+			img.addQueue(0, t1x + cowPosition[i], t1y, cowLength[i], 32, x1 + cowPosition[i], y1, cowLength[i], 32);
+		}
+		*/
+		for(var i = 0; i < puzzlePosition.length-1; i++) {
+			var offset;
+			if(puzzleScroll <= -puzzlePosition[i+1]) {
+				offset = 170;
+			}
+			else {
+				offset = 0;
+			}
+			if((i === 2 || i === 3) && (state === 1005)){
+				drawSprite(img, shellSpawn.spriteSet, shellSpawn.spriteNumber, x2 + puzzlePosition[i] + Math.round(puzzleLength[i]/2)-8 + puzzleScroll + offset, y2 + 8);
+			}
+			else {
+				img.addQueue(0, t2x + puzzlePosition[i], t2y, puzzleLength[i], 32, x2 + puzzlePosition[i] + puzzleScroll + offset, y2, puzzleLength[i], 32);
+			}
+		}
+	}
+	//P 27 x 32
+	//U 30
+	//Z 29
+	//Z 29
+	//L 28
+	//E 27
+	//blank 6
+}
+function drawTitleCow(img, x, y) {
+	img.drawRect(x, y, 16, 16, 0, 255, 255, 255);
+	
+	drawSprite(img, cowLife.spriteSet, cowLife.spriteNumber, cowLife.x, cowLife.y);
+}
+function setTitleCow(x, y) {
+	cowLife.x = x;
+	cowLife.y = y;
+}
+function moveTitleCow(x, y) {
+	shellSpawn.stopAnimation();
+	cowLife.animate(cowLifeWalk, 4);
+	return cowLife.moveTo(x, y, 1);
+}
+function eatTitleCow() {
+	sf = spawnFrames.slice();
+	sf.push(sf[sf.length-1]+1);
+	shellSpawn.animate(sf, 1, 0, 0);
+	if(cowLife.animate(cowLifeEating, 4, 1, 2) === 2) {
+		cowLife.stopAnimation();
+		return 2;
+	}
+	return 0;
+}
+function spawnTitle(img, x1 , y1, x2 = x1 - 22, y2 = y1 + 40) {
+
+	/*
+	for(var i = 0; i < puzzleLength.length-1; i++) {
+		drawSprite(img, shellSpawn.spriteSet, shellSpawn.spriteNumber, x2 + puzzlePosition[i] + Math.round(puzzleLength[i]/2)-8, y2 + 8);
+	}
+	*/
+	/*if(!shellSpawn.animate(spawnFrames, 0, 0, 0)) {
+		//drawSprite(img, shellSpawn.spriteSet, shellSpawn.spriteNumber, shellSpawn.x, shellSpawn.y);
+	}*/
+	return shellSpawn.animate(spawnFrames.slice().reverse(), 2, 0, 0);
+}
+function shiftTitlePuzzle() {
+	if(puzzleScroll < 0) {
+		puzzleScroll += 2;
+	}
+	if(puzzleScroll >= 0) {
+		puzzleScroll = 0;
+		return true;
+	}
+	return false;
+}
+function setPuzzleScrollState(input) {
+	//reset
+	if(input) {
+		puzzleScroll = -95;
+	}
+	else {
+		puzzleScroll = 0;
+	}
 }
 
 //*GENERAL DRAW SPRITES FUNCTION
@@ -310,6 +433,8 @@ function drawGrassOut(img, grs = 1) {
 		drawSprite(img, 6+i, 0, 352, 48 + (16*i));
 	}
 }
+
+
 /*
 //Draw a word using sprites
 void drawword(char *str, byte align, int x, int y)

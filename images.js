@@ -50,6 +50,9 @@ class images {
 		if((dw === 0) || (dh === 0)) {
 			this.scaleFactor = 1;
 		}
+		if(this.scaleFactor > 1) {
+			this.scaleFactor -= 1;
+		}
 		this.canv.width = this.width * this.scaleFactor;
 		this.canv.height = this.height * this.scaleFactor;
 		this.ctx.imageSmoothingEnabled = this.smoothing;

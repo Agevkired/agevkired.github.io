@@ -81,7 +81,8 @@ testGrid.cowSet(3,3);
 
 var trackActive = true;
 
-var gameState = 0;
+var titleCounter = 0;
+var gameState = 1000;
 var moveX = 0;
 var moveY = 0;
 var shiftR = 0;
@@ -292,6 +293,68 @@ var entry = setInterval(function(){
 					gameState = 0;
 				}
 				break;
+			//TITLE STATE
+			case 1000: //title appear
+				if(spawnTitle()) {
+					gameState = 1001;
+				}
+				for(var i = 0; i < inputKeys.length; i++) {
+					if((inputPushed[i] === 1) && (inputKeys[i] == " ")) {
+						//console.log("Pressed");
+						gameState = 1003;
+						setPuzzleScrollState(false);
+					}
+				}
+				break;
+			case 1001: //pause for a little bit after title appears
+				titleCounter += 1;
+				if(titleCounter > 25 * 2){
+					gameState = 1002;
+					titleCounter = 0;
+				}
+				for(var i = 0; i < inputKeys.length; i++) {
+					if((inputPushed[i] === 1) && (inputKeys[i] == " ")) {
+						//console.log("Pressed");
+						gameState = 1003;
+						setPuzzleScrollState(false);
+					}
+				}
+				break;
+			case 1002: //shift "puzzle" to correct it
+				if(shiftTitlePuzzle()) {
+					gameState = 1003;
+				}
+				for(var i = 0; i < inputKeys.length; i++) {
+					if((inputPushed[i] === 1) && (inputKeys[i] == " ")) {
+						//console.log("Pressed");
+						gameState = 1003;
+						setPuzzleScrollState(false);
+					}
+				}
+				break;
+			case 1003: //default state
+				titleCounter += 1;
+				if(titleCounter > 1000) {
+					titleCounter = 0;
+				}
+				for(var i = 0; i < inputKeys.length; i++) {
+					if((inputPushed[i] === 1) && (inputKeys[i] == " ")) {
+						//console.log("Pressed");
+						gameState = 1004;
+						setTitleCow(144+35, 64+7);
+					}
+				}
+				break;
+			case 1004: //when space is pressed, cow exits "O" to eat "zz". start game when animation finished
+				if(moveTitleCow(144+35, 64+7+22)) {
+					gameState = 1005;
+				}
+				break;
+			case 1005:
+				if(eatTitleCow() === 2) {
+					gameState = 0;
+				}
+				break;
 			default:
 				break;
 		}
@@ -350,8 +413,10 @@ var entry = setInterval(function(){
 		
 		drawShells(img, testGrid.shells);
 		drawGainShells(img, testGrid.shells);
+		drawWord(img, "ammo", 41, 29); 
 		//DRAW GRASS OUT
 		drawGrassOut(img, testGrid.grassesActive);
+		drawWord(img, "next", 43, 5);
 		/*
 		drawSprite(img, 6, 0, 352, 48);
 		for(var i = 0; i < 8; i++) {
@@ -411,7 +476,22 @@ var entry = setInterval(function(){
 			clearInterval(entry);
 		}
 		*/
-		testGrid.drawGrid(img, gridX, gridY);
+		
+		//testGrid.drawGrid(img, gridX, gridY);
+		if(gameState < 1000) {
+			testGrid.drawGrid(img, gridX, gridY);
+		}
+		if(gameState >= 1000) {
+			drawTitle(img, gameState, 144, 64);
+		}
+		if(gameState === 1003) {
+			if(Math.floor(titleCounter / 25) % 2 === 0) {
+				drawWord(img, "press space", 19, 20);
+			}
+		}
+		if(gameState >= 1004) {
+			drawTitleCow(img, 144+35, 64+7);
+		}
 		
 		img.draw();
 		img.clearQueue();

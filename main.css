@@ -1,6 +1,6 @@
 canvas { 
-	/*background: #00FF00; */
-	background: #CCAA00;
+	background: #00FF00;
+	/*background: #CCAA00;*/
 	image-rendering: pixelated;
 	/*transform: scale(1);*/
 	display: block;
