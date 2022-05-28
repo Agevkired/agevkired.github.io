@@ -278,19 +278,37 @@ var entry = setInterval(function(){
 				fire = 0;
 				gameState = 0;
 				testGrid.manageDifficulty();
-				testGrid.turnsDecrement();
+				if(testGrid.turnsDecrement()){
+					titleCounter = 0;
+					gameState = 50;
+				}
 				break;
 			case 10:
 				console.log("Cow Dead");
 				if(moveDeadCow()) {
-					testGrid.respawn();
-					gameState = 11;
+					if(testGrid.turnsDecrement(10)) {
+						titleCounter = 25;
+						gameState = 50;
+					}
+					else {
+						testGrid.respawn();
+						gameState = 11;
+					}
 				}
 				testGrid.wolfEating();
 				break;
 			case 11:
 				if(testGrid.cowSpawning()) {
 					gameState = 0;
+				}
+				break;
+			case 50:
+				titleCounter += 1;
+				if(titleCounter > 25 * 4){
+					gameState = 1000;
+					testGrid.initialize();
+					setTrack(testGrid.wolfTrack);
+					titleCounter = 0;
 				}
 				break;
 			//TITLE STATE
@@ -352,7 +370,9 @@ var entry = setInterval(function(){
 				break;
 			case 1005:
 				if(eatTitleCow() === 2) {
-					gameState = 0;
+					//testGrid.cowSet(4,4);
+					testGrid.initialize();
+					gameState = 11;
 				}
 				break;
 			default:
@@ -391,7 +411,7 @@ var entry = setInterval(function(){
 		}
 		//drawWord(img, "asd f", 1, 6);
 		//drawWord(img, "asdf", 1, 7, 1);
-		drawScore(img, testGrid.score);
+		drawScore(img, testGrid.score, testGrid.hiscore);
 
 
 		//DRAW VARIOUS UI - TESTING
@@ -423,8 +443,9 @@ var entry = setInterval(function(){
 			drawSprite(img, 6+i, 0, 352, 48 + (16*i));
 		}
 		*/
+		
+		
 		/*
-		drawDeadCow(img,testGrid.cow, gridX, gridY);
 		//TEST SPRITES
 		testWolf.setCoord(0, 24);
 		if(testWolf.spawn === 0) {
@@ -480,13 +501,17 @@ var entry = setInterval(function(){
 		//testGrid.drawGrid(img, gridX, gridY);
 		if(gameState < 1000) {
 			testGrid.drawGrid(img, gridX, gridY);
+			drawDeadCow(img,testGrid.cow, gridX, gridY);
+			if(gameState === 50) {
+				drawWord(img, "game over", 21, 19);
+			}
 		}
 		if(gameState >= 1000) {
 			drawTitle(img, gameState, 144, 64);
 		}
 		if(gameState === 1003) {
 			if(Math.floor(titleCounter / 25) % 2 === 0) {
-				drawWord(img, "press space", 19, 20);
+				drawWord(img, "press space", 19, 19);
 			}
 		}
 		if(gameState >= 1004) {

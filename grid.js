@@ -28,7 +28,7 @@ class grid {
 		this.cowY = 0;
         this.cow = new cow(0,0);
 		this.cowSet(0, 0);
-		this.shells = 3;
+		this.shells = 2;
 		//setup wolves
 		this.wolves = [];
 		this.wolvesX = [];
@@ -50,7 +50,7 @@ class grid {
 		this.scoreThreshold = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]; //as score passes, difficulty increments, write what it actually does later
 		this.difficulty = 0;
 		this.scoreMultiplier = 1;
-		this.turnsLeft = 40;
+		this.turnsLeft = 30;
 		this.turnsMultiplier = 1;
 		//****wolves
 		this.wolvesActive = 0;
@@ -142,8 +142,16 @@ class grid {
 	initialize() {
 		this.score = 0;
 		this.difficulty = 0;
+		this.turnsLeft = 30;
 		this.shells = 2;
+		for(var j = 0; j < this.y; j++) {
+            for(var i = 0; i < this.x; i++) {
+				this.grasses[i][j].setColor((j*this.x + i)%8); //CHANGE THIS TO SOMETHING ELSE
+            }
+        }
+		this.wolfTrack = [0,0,1,2,3, 0,0,0,0,0]; //10
 		this.respawn();
+		this.manageDifficulty();
 	}
 
 	//**COW/PLAYER FUNCTIONS */
@@ -190,7 +198,7 @@ class grid {
 		for(var i = 0; i < this.wolvesActive; i++) {
 			if((this.cowX === this.wolvesX[i]) && (this.cowY === this.wolvesY[i])) {
 				this.cow.spriteNumber = cowDeadSprite;
-				this.turnsLeft -= 10;
+				//this.turnsLeft -= 10;
 				return true;
 			}
 		}
@@ -627,6 +635,9 @@ class grid {
 			earned += i;
 		}
 		this.score += earned * this.scoreMultiplier;
+		if(this.score > this.hiscore) {
+			this.hiscore = this.score;
+		}
 		this.turnsLeft += this.grassEaten * this.turnsMultiplier;// * this.turnsMultiplier;
 		if(this.turnsLeft > 40) {
 			this.turnsLeft = 40;
@@ -634,12 +645,14 @@ class grid {
 		this.grassEaten = 0;
 	}
 
-	turnsDecrement() {
-		this.turnsLeft -= 1;
+	turnsDecrement(turnsReduce = 1) {
+		this.turnsLeft -= turnsReduce;
 		if(this.turnsLeft < 1) {
 			console.log("GAME OVER");
 			this.turnsLeft = 0;
+			return true;
 		}
+		return false;
 	}
 
 	manageDifficultyOld(){

@@ -289,6 +289,9 @@ function moveTrack(track, shells, active) {
 	}
 	return equal === 0;
 }
+function setTrack(track) {
+	wolfTrackOld = [...track];
+}
 function drawTrack(img, track, active) {
 	var wolfTrackIcon = [20, 2, 3, 4];
 	//Sticks/Dividers
@@ -424,7 +427,7 @@ function moveDeadCow() {
 function drawDeadCow(img, cow, gx, gy) {
 	if(cowDeathY != 0) {
 		drawSprite(img, 0, 9, cow.x + gx, cow.y + gy + cowDeathY, cow.mirror);
-		drawSprite(img, 0, 9, 0, 128+16); 
+		//drawSprite(img, 0, 9, 0, 128+16); //DEBUG - test if it works
 	}
 }
 
