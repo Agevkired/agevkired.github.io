@@ -9,10 +9,11 @@ class wolf extends sprite{
 		this.oy = 0;
 		this.type = 0; //use for later
 		this.spawn = 2; //0 = moving, 1 = spawned, 2 = spawning animation, 3 = dead, 4 = dying animation
-		this.spriteSet = 4; //wolf
+		//this.spriteSet = 4; //wolf
+		this.spriteSet = wolfSpriteSet;
 		this.spriteNumber = 0; //standing
 		this.walking = [1, 3, 2, 3];
-		this.dying = [0, 6, 7, 8, 10, 11];
+		this.dying = [0, 6, 6, 7, 8, 10, 11];
 		this.spawnFrames = [6, 5, 4, 3, 2, 1, 0];
 		this.eating = [4, 0, 5];
 	}

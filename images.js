@@ -115,8 +115,39 @@ class images {
 		this.queue = [];
 		this.queueSize = 0;
 	}
-	sortQueue() {
+	getQueue() {
+		return this.queueSize;
+	}
+	swapQueue(q1, q2) {
+		var n = 0;
+		for(var i = 0; i < q1.length; i++) {
+			n = q1[i];
+			q1[i] = q2[i];
+			q2[i] = n;
+		}
+	}
+	sortQueue(start = 0, end = -1) {
 		//sort queue by y-position for painter's algorithm, use dY
+		var position = start;
+		if(end != -1) {
+			if(start > end) {
+				console.log("ERROR IN sortQueue: END ELEMENT IS BEFORE START");
+				return;
+			}
+		}
+		else {
+			end = this.queue.length;
+		}
+		//Gnome sort
+		while(position < end-1) {
+			if((position === start) || (this.queue[position][6] <= this.queue[position+1][6])) {
+				position += 1;
+			}
+			else {
+				this.swapQueue(this.queue[position], this.queue[position+1]);
+				position -= 1;
+			}
+		}
 	}
 	draw() {
 		for(var i = 0; i < this.queueSize; i++) {

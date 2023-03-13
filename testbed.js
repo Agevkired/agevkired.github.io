@@ -61,6 +61,7 @@ var test2d = [];
 test2d.push([5,4,3,2,1]);
 
 var testGrid = new grid(10, 10, 20, 8);
+testGrid.initialize();
 var gridX = 100, gridY = 50;
 console.log("grass: ", testGrid.getGrass(1, 1));
 wolfTrackOld = [...testGrid.wolfTrack];
@@ -75,6 +76,50 @@ testCow.setCoord(200, 160);
 var testWolf = new wolf(3,3);
 
 var testGrass = new grass(1,1);
+
+//CREATE DEMO
+var demoGridShift = new grid(3, 5);//, 20, 16);
+demoGridShift.cowSet(2,1);
+var demoGridShiftState = 0;
+var demoGridShiftDelay = 0;
+var arrowKeyPressed = 0;
+//var gridX = 100, gridY = 50;
+var demoGridCow = new grid(3, 5);
+demoGridCow.cowSet(2,1);
+demoGridCow.setGrasses([4,4,1,5,2, 6,4,1,2,2, 3,4,4,4,2]);
+var demoGridCowState = 0;
+var demoGridCowDelay = 0;
+var WASDPressed = 0;
+var SpaceBarPressed = 0;
+var demoGridCowMoves = [0,1,2,4,3,3,4,2];
+var demoWolf = new wolf(3,3);
+var demoWolfSprite = 0;
+//var demoGridCowX = 100, demoGridCowY = 300;
+var demoGrid = new grid(10, 10, 20, 8);
+var demoGridState = 0;
+
+function initializeDemo() {
+	//SHIFT DEMO
+	demoGridShift = new grid(3, 5);//, 20, 16);
+	demoGridShift.cowSet(2,1);
+	demoGridShiftState = 0;
+	demoGridShiftDelay = 0;
+	arrowKeyPressed = 0;
+	//COW MOVE AND EAT DEMO
+	demoGridCow = new grid(3, 5);
+	demoGridCow.cowSet(2,1);
+	demoGridCow.setGrasses([4,4,1,5,2, 6,4,1,2,2, 3,4,4,4,2]);
+	demoGridCowState = 0;
+	demoGridCowDelay = 0;
+	WASDPressed = 0;
+	SpaceBarPressed = 0;
+	demoGridCowMoves = [0,1,2,4,3,3,4,2];
+	//WOLF SHOT DEMO
+	demoWolf = new wolf(3,3);
+	demoWolfSprite = 0;
+	demoGrid = new grid(10, 10, 20, 8);
+	demoGridState = 0;
+}
 
 //testGrid cow movement
 testGrid.cowSet(3,3);
@@ -97,6 +142,15 @@ testGrid.wolves[1].spawn = 2;
 testGrid.wolves[2].spawn = 2;
 testGrid.wolves[3].spawn = 2;
 */
+function handleDemoGrid() {
+	switch(demoGridState) {
+		case 0: //
+			break;
+		default:
+			break;
+	}
+}
+
 var entry = setInterval(function(){
 	//console.log("not loaded");
 	if(img.checkLoaded()) {
@@ -180,13 +234,13 @@ var entry = setInterval(function(){
 				else if(shiftC != 0) {
 					if(testGrid.shiftColumn(testGrid.cowX, shiftC - 1)) {
 						shiftC = 0;
-						//gameState = 2;
+						gameState = 6;
 					}
 				}
 				else if(shiftR != 0) {
 					if(testGrid.shiftRow(testGrid.cowY, shiftR - 1)) {
 						shiftR = 0;
-						//gameState = 2;
+						gameState = 6;
 					}
 				}
 				else if(eating != 0) {
@@ -227,7 +281,7 @@ var entry = setInterval(function(){
 						console.log("fire-2", a);
 						if(a > 0) {
 							fire = 0;
-							//gameState = 2;
+							gameState = 0;
 						}
 					}
 				}
@@ -249,7 +303,7 @@ var entry = setInterval(function(){
 				break;
 			case 3: //NPC behavior
 				testGrid.cow.stopAnimation();
-				testGrid.grassSpawn();
+				//testGrid.grassSpawn();
 				//testGrid.wolfTrackMove();
 				testGrid.wolvesActivate();
 				gameState = 4;
@@ -276,7 +330,18 @@ var entry = setInterval(function(){
 				shiftR = 0;
 				eating = 0;
 				fire = 0;
+				gameState = 6;
+				/*
+				testGrid.manageDifficulty();
+				if(testGrid.turnsDecrement()){
+					titleCounter = 0;
+					gameState = 50;
+				}
+				*/
+				break;
+			case 6:
 				gameState = 0;
+				testGrid.grassSpawn();
 				testGrid.manageDifficulty();
 				if(testGrid.turnsDecrement()){
 					titleCounter = 0;
@@ -285,21 +350,37 @@ var entry = setInterval(function(){
 				break;
 			case 10:
 				console.log("Cow Dead");
+				testGrid.wolfEating();
 				if(moveDeadCow()) {
 					if(testGrid.turnsDecrement(10)) {
 						titleCounter = 25;
 						gameState = 50;
 					}
 					else {
-						testGrid.respawn();
+						//testGrid.respawn();
 						gameState = 11;
+						fire = 1;
+						testGrid.wolvesStopAnimation();
 					}
 				}
-				testGrid.wolfEating();
 				break;
 			case 11:
+				if(testGrid.gunDeadCow()) {
+					//testGrid.respawn();
+					gameState = 12;
+				}
+				break;
+			case 12:
 				if(testGrid.cowSpawning()) {
+					moveX = 0;
+					moveY = 0;
+					shiftC = 0;
+					shiftR = 0;
+					eating = 0;
+					fire = 0;
 					gameState = 0;
+					testGrid.manageDifficulty();
+					testGrid.respawn();
 				}
 				break;
 			case 50:
@@ -313,6 +394,7 @@ var entry = setInterval(function(){
 				break;
 			//TITLE STATE
 			case 1000: //title appear
+				testGrid = new grid(5, 3, 20, 8);
 				if(spawnTitle()) {
 					gameState = 1001;
 				}
@@ -352,8 +434,9 @@ var entry = setInterval(function(){
 				break;
 			case 1003: //default state
 				titleCounter += 1;
-				if(titleCounter > 1000) {
+				if(titleCounter > 250) {
 					titleCounter = 0;
+					gameState = 1010; //go to demo
 				}
 				for(var i = 0; i < inputKeys.length; i++) {
 					if((inputPushed[i] === 1) && (inputKeys[i] == " ")) {
@@ -371,9 +454,165 @@ var entry = setInterval(function(){
 			case 1005:
 				if(eatTitleCow() === 2) {
 					//testGrid.cowSet(4,4);
+					testGrid = new grid(10, 10, 20, 8);
 					testGrid.initialize();
-					gameState = 11;
+					resetTitle();
+					gameState = 12;
 				}
+				break;
+			case 1010: //start demo
+				if(shiftDemoScroll()) {
+					//gameState = 1011;
+				}
+				if(demoGridShiftDelay == 0) {
+					switch (demoGridShiftState) {
+						case 0:
+							arrowKeyPressed = 1;
+							if(demoGridShift.shiftColumn(demoGridShift.cowX, 0)) {
+								demoGridShiftState = 1;
+								demoGridShiftDelay += 1;
+							}
+							break;
+						case 1:
+							arrowKeyPressed = 2;
+							if(demoGridShift.shiftColumn(demoGridShift.cowX, 1)) {
+								demoGridShiftState = 2;
+								demoGridShiftDelay += 1;
+							}
+							break;
+						case 2:
+							arrowKeyPressed = 4;
+							if(demoGridShift.shiftRow(demoGridShift.cowY, 0)) {
+								demoGridShiftState = 3;
+								demoGridShiftDelay += 1;
+							}
+							break;
+						case 3:
+							arrowKeyPressed = 8;
+							if(demoGridShift.shiftRow(demoGridShift.cowY, 1)) {
+								demoGridShiftState = 0;
+								demoGridShiftDelay += 1;
+							}
+							break;
+					}
+				}
+				else if(demoGridShiftDelay >= 15) {
+					demoGridShiftDelay = 0;
+				}
+				else {
+					demoGridShiftDelay += 1;
+				}
+
+				demoGridCow.initialize(true);
+				demoGridCow.setGrasses([4,4,1,5,2, 6,4,1,2,2, 3,4,4,4,2]);
+				demoGridCowState = demoGridCowState % demoGridCowMoves.length;
+				if(demoGridCowDelay === 0) {
+					switch (demoGridCowMoves[demoGridCowState]) {
+						case 0:
+							WASDPressed = 1;
+							SpaceBarPressed = 0;
+							if(demoGridCow.cowMove(demoGridCow.cowX, demoGridCow.cowY - 1) != 1) {
+								demoGridCowState += 1;
+								eating = 1;
+								demoGridCowDelay += 1;
+								demoGridCow.grassSpawn();
+							}
+							break;
+						case 1:
+							WASDPressed = 2;
+							SpaceBarPressed = 0;
+							if(demoGridCow.cowMove(demoGridCow.cowX, demoGridCow.cowY + 1) != 1) {
+								demoGridCowState += 1;
+								eating = 1;
+								demoGridCowDelay += 1;
+								demoGridCow.grassSpawn();
+							}
+							break;
+						case 2:
+							WASDPressed = 4;
+							SpaceBarPressed = 0;
+							if(demoGridCow.cowMove(demoGridCow.cowX - 1, demoGridCow.cowY) != 1) {
+								demoGridCowState += 1;
+								eating = 1;
+								demoGridCowDelay += 1;
+								demoGridCow.grassSpawn();
+							}
+							break;
+						case 3:
+							WASDPressed = 8;
+							SpaceBarPressed = 0;
+							if(demoGridCow.cowMove(demoGridCow.cowX + 1, demoGridCow.cowY) != 1) {
+								demoGridCowState += 1;
+								eating = 1;
+								demoGridCowDelay += 1;
+								demoGridCow.grassSpawn();
+							}
+							break;
+						case 4:
+							WASDPressed = 0;
+							SpaceBarPressed = 1;
+							if(eating != 0) {
+								if(eating === 1) {
+									if(demoGridCow.markGrass(demoGridCow.cowX, demoGridCow.cowY)) {
+										demoGridCow.markResolve();
+										eating += 1;
+									}
+									else {
+										eating = 0;
+									}
+								}
+								else if (eating > 32) {
+									eating = 0;
+									demoGridCow.cow.stopAnimation();
+									demoGridCowState += 1;
+								}
+								else {
+									demoGridCow.cowEating();
+									eating += 1;
+								}
+							}
+							break;
+						case 5:
+							demoGridCowState = 0;
+							demoGridCow = new grid(3, 5);
+							demoGridCow.cowSet(2,1);
+							demoGridCow.setGrasses([4,4,1,5,2, 6,4,1,2,2, 3,4,4,4,2]);
+							demoGridCowState = 0;
+							demoGridCowDelay = 0;
+							WASDPressed = 0;
+							SpaceBarPressed = 0;
+							break;
+					}
+				}
+				else if(demoGridCowDelay >= 10) {
+					demoGridCowDelay = 0;
+				}
+				else {
+					demoGridCowDelay += 1;
+				}
+				
+				for(var i = 0; i < inputKeys.length; i++) {
+					if((inputPushed[i] === 1) && (inputKeys[i] == " ")) {
+						//console.log("Pressed");
+						gameState = 1003;
+						setPuzzleScrollState(false);
+						shiftDemoScroll(true);
+					}
+				}
+				titleCounter += 1;
+				if(titleCounter > 500) {
+					titleCounter = 0;
+					shiftDemoScroll(true);
+					initializeDemo();
+					resetTitle();
+					gameState = 1000;
+				}
+				break;
+
+			case 1011: //2nd demo
+				break;
+			case 1100: //game demo
+				
 				break;
 			default:
 				break;
@@ -431,7 +670,8 @@ var entry = setInterval(function(){
 		drawSprite(img, 1, 4, 320+32, 240);
 		*/
 		
-		drawShells(img, testGrid.shells);
+		//drawShells(img, testGrid.shells);
+		drawShells(img, 320, 240, testGrid.shells);
 		drawGainShells(img, testGrid.shells);
 		drawWord(img, "ammo", 41, 29); 
 		//DRAW GRASS OUT
@@ -503,21 +743,68 @@ var entry = setInterval(function(){
 			testGrid.drawGrid(img, gridX, gridY);
 			drawDeadCow(img,testGrid.cow, gridX, gridY);
 			if(gameState === 50) {
+				img.drawRect(21*8, 19*8, 72, 8, 0, 0, 255, 0); //maybe make it fetch RGB from CSS BG value
 				drawWord(img, "game over", 21, 19);
 			}
 		}
 		if(gameState >= 1000) {
-			drawTitle(img, gameState, 144, 64);
+			drawTitleScreen(img, gameState);
+			
+			demoGridShift.drawGrid(img, gridX, gridY+300+demoScroll);
+			drawArrowKeys(img, 31*8, 8*8+300+demoScroll, arrowKeyPressed);
+			demoGridCow.drawGrid(img, gridX, gridY+112+300+demoScroll); //MOVEMENT DEMO HERE
+			drawWASDKeys(img, 28*8, 21*8+300+demoScroll, WASDPressed);
+			drawSpaceBar(img, 32*8, 25*8+300+demoScroll, SpaceBarPressed);
+			drawWolfShot(img, 18*8, 30*8+300+demoScroll, 0);
+			if((gameState != 1004) && (gameState != 1005)){
+				if(Math.floor(titleCounter / 25) % 2 === 0) {
+					drawWord(img, "press space", 19, 17, 0, 0);
+				}
+			}
+			/*
+			demoGridShift.drawGrid(img, gridX, gridY+20);
+			drawWord(img, "shift rows", 28, 9);
+			drawWord(img, "and columns", 28, 10);
+			drawWord(img, "with arrows", 28, 11);
+			drawArrowKeys(img, 31*8, 13*8, arrowKeyPressed);
+			demoGridCow.drawGrid(img, gridX, gridY+130); //MOVEMENT DEMO HERE
+			drawWord(img, "move with", 28, 22);
+			drawWord(img, "wasd", 30, 23);
+			drawWord(img, "eat with", 28, 24);
+			drawWord(img, "space", 30, 25);
+			drawWASDKeys(img, 28*8, 26*8, WASDPressed);
+			drawSpaceBar(img, 32*8, 30*8, SpaceBarPressed);
+			*/
+			/* //TESTING AREA
+			demoGridShift.drawGrid(img, gridX, gridY);
+			//drawWord(img, "shift rows", 28, 9);
+			//drawWord(img, "and columns", 28, 10);
+			//drawWord(img, "with arrows", 28, 11);
+			drawArrowKeys(img, 31*8, 8*8, arrowKeyPressed);
+			demoGridCow.drawGrid(img, gridX, gridY+100); //MOVEMENT DEMO HERE
+			//drawWord(img, "move with", 28, 22);
+			//drawWord(img, "wasd", 30, 23);
+			//drawWord(img, "eat with", 28, 24);
+			//drawWord(img, "space", 30, 25);
+			drawWASDKeys(img, 28*8, 20*8, WASDPressed);
+			drawSpaceBar(img, 32*8, 24*8, SpaceBarPressed);
+			drawWolfShot(img, 18*8, 30*8, 0);
+			*/
+		}
+		/*
+		if(gameState >= 1000) {
+			drawTitle(img, gameState, 144, 64 + demoScroll);
 		}
 		if(gameState === 1003) {
 			if(Math.floor(titleCounter / 25) % 2 === 0) {
 				drawWord(img, "press space", 19, 19);
 			}
+			testGrid.drawGrid(img, gridX+50, gridY+140);
 		}
-		if(gameState >= 1004) {
+		if((gameState >= 1004) && (gameState < 1010)) { //animate cow eating title
 			drawTitleCow(img, 144+35, 64+7);
 		}
-		
+		*/
 		img.draw();
 		img.clearQueue();
 

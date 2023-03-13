@@ -21,6 +21,7 @@ function cowMove(buttonInput) {
 
 class cow extends sprite{
 	constructor(x, y) {
+		//spriteSet = 0 from sprite class
 		super();
 		this.walking = [1, 3, 2, 3];
 		this.eating = [4, 0, 5, 0, 6];

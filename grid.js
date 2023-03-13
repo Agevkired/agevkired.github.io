@@ -1,8 +1,8 @@
 class grid {
-    constructor(row, column, space=20, steps=16, spriteSize=16) {
+    constructor(row, column, space=20, steps=8, spriteSize=16) {
 		//size of grid
-        this.x = row;
-        this.y = column;
+        this.x = column;
+        this.y = row;
 		//size of space in pixels
         this.space = space;
         this.offset = (space-spriteSize)/2; //offset to center sprites in space, assumes 16x16
@@ -33,7 +33,8 @@ class grid {
 		this.wolves = [];
 		this.wolvesX = [];
 		this.wolvesY = [];
-		for(var i = 0; i < 4; i++) {
+		this.wolvesMax = 4;
+		for(var i = 0; i < this.wolvesMax; i++) {
 			this.wolves.push(new wolf(0,0));
 			this.wolvesX.push(0);
 			this.wolvesY.push(0);
@@ -70,7 +71,27 @@ class grid {
     }
 	//draw grid of grass at position
     drawGrid(img, x, y) {
+
+		/*
+		var drawCow = true;
+		var drawWolves = [];
+		for(var i = 0; i < this.wolvesActive; i++) {
+			drawWolves.push(true);
+		}
     	for(var j = 0; j < this.y; j++) {
+			if((this.grasses[j][0].y >= this.cow.y) && drawCow) {
+				drawSprite(img, this.cow.spriteSet, this.cow.spriteNumber, x + this.cow.x, y + this.cow.y - 8, this.cow.mirror);
+				drawCow = false;
+			}
+			for(var i = 0; i < this.wolvesActive; i++) {
+				if((this.grasses[j][0].y >= this.wolves[i].y) && drawWolves[i]) {
+					if(this.wolves[i].spawn != this.wolfStateSpawning){
+						drawSprite(img, this.wolves[i].spriteSet, this.wolves[i].spriteNumber, x + this.wolves[i].x, y + this.wolves[i].y - 6, this.wolves[i].mirror);
+						//drawSprite(img, this.wolfNumberSprites, i, x + this.wolves[i].x, y + this.wolves[i].y);
+					}
+					drawWolves[i] = false;
+				}
+			}
             for(var i = 0; i < this.x; i++) {
 				//0 means full grown, change later
                 drawSprite(img, this.grasses[j][i].color + 6, this.grasses[j][i].spawn, x + this.grasses[j][i].x, y + this.grasses[j][i].y);
@@ -88,17 +109,41 @@ class grid {
 				}
             }
         } 
-		drawSprite(img, this.cow.spriteSet, this.cow.spriteNumber, x + this.cow.x, y + this.cow.y, this.cow.mirror);
+		//drawSprite(img, this.cow.spriteSet, this.cow.spriteNumber, x + this.cow.x, y + this.cow.y, this.cow.mirror);
+		*/
+		//DRAW SPRITES
+		var CurrentQSize = img.getQueue();
+		drawSprite(img, this.cow.spriteSet, this.cow.spriteNumber, x + this.cow.x, y + this.cow.y - 8, this.cow.mirror);
+		for(var i = 0; i < this.wolvesActive; i++) {
+			if(this.wolves[i].spawn != this.wolfStateSpawning){
+				drawSprite(img, this.wolves[i].spriteSet, this.wolves[i].spriteNumber, x + this.wolves[i].x, y + this.wolves[i].y - 6, this.wolves[i].mirror);
+				//drawSprite(img, this.wolfNumberSprites, i, x + this.wolves[i].x, y + this.wolves[i].y);
+			}
+		}
+		for(var j = 0; j < this.y; j++) {
+			for(var i = 0; i < this.x; i++) {
+				//0 means full grown, change later
+				drawSprite(img, this.grasses[j][i].color + 6, this.grasses[j][i].spawn, x + this.grasses[j][i].x, y + this.grasses[j][i].y);
+				if(this.grasses[j][i].spawn >= 4) {
+					drawSprite(img, this.grasses[j][i].spriteSet, this.grasses[j][i].spriteNumber, x + this.grasses[j][i].x, y + this.grasses[j][i].y);
+				}
+				if(this.grasses[j][i].spawn === 0) {
+					if(this.grasses[j][i].getExtra() > 0) {
+						drawSprite(img, woflUISpriteSet, this.grasses[j][i].getExtra() + 6, x + this.grasses[j][i].x, y + this.grasses[j][i].y + 2);
+					}
+				}
+			}
+		}
+		img.sortQueue(CurrentQSize-1);
+
+		//DRAW ARROWS
 		drawSprite(img, 1, 0, x - this.space + this.offset, y + this.cow.y);
 		drawSprite(img, 1, 1, x + (this.x * this.space) + this.offset, y + this.cow.y);
 		drawSprite(img, 1, 2, x + this.cow.x, y - this.space + this.offset);
 		drawSprite(img, 1, 3, x + this.cow.x, y + (this.y * this.space) + this.offset);
-		for(var i = 0; i < this.wolvesActive; i++) {
-			if(this.wolves[i].spawn != this.wolfStateSpawning){
-				drawSprite(img, this.wolves[i].spriteSet, this.wolves[i].spriteNumber, x + this.wolves[i].x, y + this.wolves[i].y, this.wolves[i].mirror);
-				drawSprite(img, this.wolfNumberSprites, i, x + this.wolves[i].x, y + this.wolves[i].y);
-			}
-		}
+		
+		
+		
 		//AIM CROSSHAIR
 		var closest = -1; //if no target (all wolves dead)
 		var closestX = 1000, closestY = 1000;
@@ -115,8 +160,17 @@ class grid {
 			}
 		}
 		if((closest != -1) && (this.cow.spriteNumber != cowDeadSprite)) {
-			drawSprite(img, 1, 5 + (this.shells > 0), x + this.wolves[closest].x, y + this.wolves[closest].y); //5 = crosshair
+			drawSprite(img, 1, 5 + (this.shells > 0), x + this.wolves[closest].x, y + this.wolves[closest].y - 6); //5 = crosshair
 		}
+
+		/*
+		for(var i = 0; i < this.wolvesActive; i++) {
+			if(this.wolves[i].spawn != this.wolfStateSpawning){
+				//drawSprite(img, this.wolves[i].spriteSet, this.wolves[i].spriteNumber, x + this.wolves[i].x, y + this.wolves[i].y, this.wolves[i].mirror);
+				drawSprite(img, this.wolfNumberSprites, i, x + this.wolves[i].x, y + this.wolves[i].y - 6);
+			}
+		}
+		*/
     }
 	xToGrid(x) {
 		return 1
@@ -138,19 +192,30 @@ class grid {
 				this.grasses[i][j].spawn = 0;
             }
         }
+		this.scoreMultiplier = 1;
 	}
-	initialize() {
+	initialize(demo = false) {
 		this.score = 0;
 		this.difficulty = 0;
 		this.turnsLeft = 30;
-		this.shells = 2;
-		for(var j = 0; j < this.y; j++) {
-            for(var i = 0; i < this.x; i++) {
-				this.grasses[i][j].setColor((j*this.x + i)%8); //CHANGE THIS TO SOMETHING ELSE
-            }
-        }
+		this.shells = 1;
 		this.wolfTrack = [0,0,1,2,3, 0,0,0,0,0]; //10
-		this.respawn();
+		if(demo) {
+			//this.hiscore -= this.score;
+			if(this.hiscore < 0) {
+				this.hiscore = 0;
+			}
+		}
+		else {
+			for(var j = 0; j < this.y; j++) {
+				for(var i = 0; i < this.x; i++) {
+					//this.grasses[i][j].setColor((j*this.x + i)%8); //CHANGE THIS TO SOMETHING ELSE
+					this.grasses[i][j].setColor(Math.floor(Math.random()*100*this.grassesActive)%4);
+				}
+			}
+			this.respawn();
+		}
+		this.scoreMultiplier = 1;
 		this.manageDifficulty();
 	}
 
@@ -231,6 +296,7 @@ class grid {
 		console.log("closest", closest, "x", closestX, "y", closestY);
 		if(closest != -1) {
 			this.shells -= 1; //only reduce when a wolf is shot
+			this.turnsMultiplier = this.shells;
 			this.wolves[closest].spawn = this.wolfStateDead;
 		}
 		return closest;
@@ -243,6 +309,38 @@ class grid {
 			return 1;
 		}
 		return 0;
+	}
+	gunDeadCow() {
+		this.turnsMultiplier = this.shells;
+		if(this.shells > 1) {
+			//search for closest wolf
+			var closest = -1;
+			var closestX = 1000, closestY = 1000;
+			var diffX, diffY;
+			for(var i = 0; i < this.wolvesActive; i++) {
+				if(this.wolves[i].spawn <= 1) { //if wolf is on board even if outside fence
+					diffX = Math.abs(this.cowX - this.wolvesX[i]);
+					diffY = Math.abs(this.cowY - this.wolvesY[i]);
+					if(diffX + diffY < closestX + closestY) {
+						closest = i;
+						closestX = diffX;
+						closestY = diffY;
+					}
+				}
+			}
+			if(closest != -1) {
+				if(this.wolves[closest].dyingAnimation()) {
+					this.wolves[closest].spawn = this.wolfStateSpawning;
+					this.shells -= 1;
+					this.score += this.scoreMultiplier;
+				}
+			}
+			else {
+				return true;
+			}
+			return false;
+		}
+		return true;
 	}
 	//**GRASS FUNCTIONS */
 	//returns an array [color, spawn];
@@ -258,20 +356,46 @@ class grid {
 			}
 		}
 	}
+
+	setGrass(x, y, color) {
+		this.grasses[y][x].color = color;
+	}
+	setGrasses(colors) {
+		var c = 0;
+		for(var j = 0; j < this.y; j++) {
+            for(var i = 0; i < this.x; i++) {
+				if(c === colors.length) {
+					return;
+				}
+				this.setGrass(i, j, colors[c]);
+				c += 1;
+			}
+		}
+	}
     
     //shift row
     shiftRow(row, direction) {
     	if(direction) {
-    		return this.shiftRight(row);
+    		if(this.shiftRight(row)) {
+				//this.turnsDecrement();
+				//testGrid.grassSpawn();
+				return true;
+			}
     	}
     	else {
-    		return this.shiftLeft(row);
+    		if(this.shiftLeft(row)) {
+				//this.turnsDecrement();
+				//testGrid.grassSpawn();
+				return true;
+			}
     	}
+		return false;
     }
     //Separate implementation for each direction, to be replaced by single function
     shiftRight(row) {
     	var tempColor;
 		var tempSpawn;
+		var tempExtra;
     	//var printX = this.grasses[row][0].x;
     	for(var i = 0; i < this.x; i++) {
     		this.grasses[row][i].x += this.stepSize;
@@ -287,12 +411,15 @@ class grid {
 			//resolve color
     		tempColor = this.grasses[row][this.x-1].color;
 			tempSpawn = this.grasses[row][this.x-1].spawn;
+			tempExtra = this.grasses[row][this.x-1].extra;
     		for(var i = this.x-1; i > 0; i--) {
 	    		this.grasses[row][i].color = this.grasses[row][i-1].color;
 				this.grasses[row][i].spawn = this.grasses[row][i-1].spawn;
+				this.grasses[row][i].extra = this.grasses[row][i-1].extra;
     		}
 			this.grasses[row][0].color = tempColor;
 			this.grasses[row][0].spawn = tempSpawn;
+			this.grasses[row][0].extra = tempExtra;
 			//resolve position
 			for(var i = 0; i < this.x; i++) {
 				this.grasses[row][i].x = i*this.space+this.offset;
@@ -307,6 +434,7 @@ class grid {
     shiftLeft(row) {
     	var tempColor;
 		var tempSpawn;
+		var tempExtra;
     	//var printX = this.grasses[row][0].x;
     	for(var i = 0; i < this.x; i++) {
     		this.grasses[row][i].x -= this.stepSize;
@@ -320,12 +448,15 @@ class grid {
 			//resolve color
     		tempColor = this.grasses[row][0].color;
 			tempSpawn = this.grasses[row][0].spawn;
+			tempExtra = this.grasses[row][0].extra;
     		for(var i = 0; i < this.x-1; i++) {
 	    		this.grasses[row][i].color = this.grasses[row][i+1].color;
 				this.grasses[row][i].spawn = this.grasses[row][i+1].spawn;
+				this.grasses[row][i].extra = this.grasses[row][i+1].extra;
     		}
 			this.grasses[row][this.x-1].color = tempColor;
 			this.grasses[row][this.x-1].spawn = tempSpawn;
+			this.grasses[row][this.x-1].extra = tempExtra;
 			//resolve position
 			for(var i = 0; i < this.x; i++) {
 				this.grasses[row][i].x = i*this.space+this.offset;
@@ -341,16 +472,26 @@ class grid {
     //shift column
     shiftColumn(column, direction) {
     	if(direction) {
-    		return this.shiftDown(column);
+    		if(this.shiftDown(column)) {
+				//this.turnsDecrement();
+				//testGrid.grassSpawn();
+				return true;
+			}
     	}
     	else {
-    		return this.shiftUp(column);
+    		if(this.shiftUp(column)) {
+				//this.turnsDecrement();
+				//testGrid.grassSpawn();
+				return true;
+			}
     	}
+		return false;
     }
     //Separate implementation for each direction, to be replaced by single function
     shiftDown(column) {
 		var tempColor;
 		var tempSpawn;
+		var tempExtra;
     	//var printX = this.grasses[0][column].x;
     	for(var j = 0; j < this.y; j++) {
 			this.grasses[j][column].y += this.stepSize;
@@ -366,12 +507,15 @@ class grid {
 			//resolve color
     		tempColor = this.grasses[this.y-1][column].color;
 			tempSpawn = this.grasses[this.y-1][column].spawn;
+			tempExtra = this.grasses[this.y-1][column].extra
     		for(var j = this.y-1; j > 0; j--) {
 	    		this.grasses[j][column].color = this.grasses[j-1][column].color;
 				this.grasses[j][column].spawn = this.grasses[j-1][column].spawn;
+				this.grasses[j][column].extra = this.grasses[j-1][column].extra;
     		}
 			this.grasses[0][column].color = tempColor;
 			this.grasses[0][column].spawn = tempSpawn;
+			this.grasses[0][column].extra = tempExtra;
 			//resolve position
 			for(var j = 0; j < this.y; j++) {
 				this.grasses[j][column].y = j*this.space+this.offset;
@@ -386,6 +530,7 @@ class grid {
     shiftUp(column) {
     	var tempColor;
 		var tempSpawn;
+		var tempExtra;
 		//move each grass up
 		for(var j = 0; j < this.y; j++) {
     		this.grasses[j][column].y -= this.stepSize;
@@ -401,12 +546,15 @@ class grid {
 			//move colors and spawn status to above grass
     		tempColor = this.grasses[0][column].color;
 			tempSpawn = this.grasses[0][column].spawn;
+			tempExtra = this.grasses[0][column].extra;
     		for(var j = 0; j < this.y-1; j++) {
 	    		this.grasses[j][column].color = this.grasses[j+1][column].color;
 				this.grasses[j][column].spawn = this.grasses[j+1][column].spawn;
+				this.grasses[j][column].extra = this.grasses[j+1][column].extra;
     		}
 			this.grasses[this.y-1][column].color = tempColor;
 			this.grasses[this.y-1][column].spawn = tempSpawn;
+			this.grasses[this.y-1][column].extra = tempExtra;
 			//reset position to realign with grid
 			for(var j = 0; j < this.y; j++) {
 				this.grasses[j][column].y = j*this.space+this.offset;
@@ -459,25 +607,57 @@ class grid {
 			}
 		}
 	}
-	wolfSpawn() {
+	wolfSpawn(wolfIn) {
 		var collision = false;
+		var checkX = [-1, 10, -1, 10];
+		var checkY = [-1, -1, 10, 10];
+		var checkCorner = [0,0,0,0];
+		//First check if corners are available
 		for(var i = 0; i < this.wolvesActive; i++) {
+			for(var j = 0; j < 4; j++) {
+				checkCorner[j] += (this.wolvesX[i] === checkX[j]) & (this.wolvesY[i] === checkY[j]);
+			}
+		}
+		if(checkCorner[0] + checkCorner[1] + checkCorner[2] + checkCorner[3] === 4) {
+			this.wolves[wolfIn].spawn = this.wolfStateSpawning;
+			return;
+		}
+		//Spawn in
+		//for(var i = 0; i < this.wolvesActive; i++) {
+			var i = wolfIn;
 			do{
 				collision = false;
 				//spawn in a corner (-1, -1), (10, 10)
-				if(this.wolves[i].spawning() === this.wolfStateSpawning-1){
+				//if(this.wolves[i].spawning() === this.wolfStateSpawning-1){
 					this.wolvesX[i] = -1 + (11 * Math.floor(Math.random()*2));
 					this.wolvesY[i] = -1 + (11 * Math.floor(Math.random()*2));
 					this.wolfSet(this.wolvesX[i], this.wolvesY[i], i);
-				}
+					console.log(this.wolvesX[i], this.wolvesY[i], i);
+				//}
 				//check if other wolves occupy corner
+				//mark now occupied corner
+				for(var j = 0; j < 4; j++) {
+					if((this.wolvesX[i] === checkX[j]) && (this.wolvesY[i] === checkY[j]) && (checkCorner[j] > 0)) {
+						collision = true;
+						this.wolvesX[i] = 0;
+						this.wolvesY[i] = 0;
+						this.wolfSet(0, 0, i);
+					}
+					//checkCorner[j] = (this.wolvesX[i] === checkX[j]) & (this.wolvesY[i] === checkY[j]);
+				}
+				/*
 				for(var j = 0; j < this.wolvesActive; j++) {
 					if((this.wolvesX[i] === this.wolvesX[j]) && (this.wolvesY[i] === this.wolvesY[j]) && (i != j)) {
 						collision = true;
 					}
 				}
+				*/
+				//exit out if all corners now occupied
+				if(checkCorner[0] + checkCorner[1] + checkCorner[2] + checkCorner[3] === 4) {
+					return;
+				}
 			} while(collision)
-		}
+		//}
 	}
 	wolfShot() {
 		var done = 0;
@@ -485,6 +665,9 @@ class grid {
 			if(this.wolves[i].spawn === this.wolfStateDead) {
 				console.log("WOLF SHOT", i);
 				done += this.wolves[i].dyingAnimation();
+				if(done > 0) {
+					this.score += this.scoreMultiplier;
+				}
 				console.log("done", done, i);
 			}
 		}
@@ -530,7 +713,11 @@ class grid {
 	}
 	wolvesMove() {
 		//var doneMoving = true;
-		var doneMoving = [true, true, true, true];
+		var doneMoving = [];
+		var total = true;
+		for(var i = 0; i < this.wolvesActive; i++) {
+			doneMoving.push(true);
+		}
 		for(var i = 0; i < this.wolvesActive; i++) {
 			doneMoving[i] = this.wolfMove(i);
 			if(doneMoving[i]) {
@@ -538,7 +725,10 @@ class grid {
 			}
 			//doneMoving = doneMoving && this.wolfMove(i);
 		}
-		return doneMoving[0] && doneMoving[1] && doneMoving[2] && doneMoving[3];
+		for(var i = 0; i < this.wolvesActive; i++) {
+			total = total & doneMoving[i];
+		}
+		return total;
 	}
 	wolvesActivate() {
 		var notActive = true;
@@ -547,7 +737,7 @@ class grid {
 			for(var i = 0; i < this.wolvesActive; i++) {
 				switch(this.wolves[i].spawning()) {
 					case this.wolfStateSpawning-1: //place on grid
-						
+						/*
 							do{
 								collision = false;
 								//spawn in a corner (-1, -1), (10, 10)
@@ -563,7 +753,8 @@ class grid {
 									}
 								}
 							} while(collision)
-						
+							*/
+						this.wolfSpawn(i);
 						break;
 					case this.wolfStateActive: //movement
 						//notActive = notActive && this.wolfChase(i);
@@ -581,7 +772,16 @@ class grid {
 			}
 		}
 	}
-
+	wolvesStopAnimation(w = -1) {
+		if(w > -1) {
+			this.wolves[w].stopAnimation();
+		}
+		else {
+			for(var i = 0; i < this.wolvesActive; i++) {
+				this.wolves[i].stopAnimation();
+			}
+		}
+	}
 	//*SCORE FUNCTIONS */
     //Depth-First Search
     markGrass(x, y) {
@@ -593,28 +793,30 @@ class grid {
 			this.grassEaten += 1;
 			console.log("current", x, y, this.grasses[y][x].x, this.grasses[y][x].spawn);
 			var target;
-			if(y > 0) { //up
-				console.log("up", x, y-1, this.grasses[y-1][x].color, this.grasses[y-1][x].spawn);
-				if((this.grasses[y][x].color === this.grasses[y-1][x].color) && (this.grasses[y][x].spawn === this.grasses[y-1][x].spawn) && (this.grasses[y-1][x].x != -3)) {
-					this.markGrass(x, y-1);
+			if(this.grasses[y][x].getExtra() != 1) {
+				if(y > 0) { //up
+					console.log("up", x, y-1, this.grasses[y-1][x].color, this.grasses[y-1][x].spawn);
+					if((this.grasses[y][x].color === this.grasses[y-1][x].color) && (this.grasses[y][x].spawn === this.grasses[y-1][x].spawn) && (this.grasses[y-1][x].x != -3)) {
+						this.markGrass(x, y-1);
+					}
 				}
-			}
-			if(y < this.y-1) { //down
-				console.log("down", x, y+1, this.grasses[y+1][x].color, this.grasses[y+1][x].spawn);
-				if((this.grasses[y][x].color === this.grasses[y+1][x].color) && (this.grasses[y][x].spawn === this.grasses[y+1][x].spawn) && (this.grasses[y+1][x].x != -3)) {
-					this.markGrass(x, y+1);
+				if(y < this.y-1) { //down
+					console.log("down", x, y+1, this.grasses[y+1][x].color, this.grasses[y+1][x].spawn);
+					if((this.grasses[y][x].color === this.grasses[y+1][x].color) && (this.grasses[y][x].spawn === this.grasses[y+1][x].spawn) && (this.grasses[y+1][x].x != -3)) {
+						this.markGrass(x, y+1);
+					}
 				}
-			}
-			if(x > 0) { //left
-				console.log("left", x-1, y, this.grasses[y][x-1].color, this.grasses[y][x-1].spawn);
-				if((this.grasses[y][x].color === this.grasses[y][x-1].color) && (this.grasses[y][x].spawn === this.grasses[y][x-1].spawn) && (this.grasses[y][x-1].x != -3)) {
-					this.markGrass(x-1, y);
+				if(x > 0) { //left
+					console.log("left", x-1, y, this.grasses[y][x-1].color, this.grasses[y][x-1].spawn);
+					if((this.grasses[y][x].color === this.grasses[y][x-1].color) && (this.grasses[y][x].spawn === this.grasses[y][x-1].spawn) && (this.grasses[y][x-1].x != -3)) {
+						this.markGrass(x-1, y);
+					}
 				}
-			}
-			if(x < this.x-1) { //right
-				console.log("right", x+1, y, this.grasses[y][x+1].color, this.grasses[y][x+1].spawn);
-				if((this.grasses[y][x].color === this.grasses[y][x+1].color) && (this.grasses[y][x].spawn === this.grasses[y][x+1].spawn) && (this.grasses[y][x+1].x != -3)) {
-					this.markGrass(x+1, y);
+				if(x < this.x-1) { //right
+					console.log("right", x+1, y, this.grasses[y][x+1].color, this.grasses[y][x+1].spawn);
+					if((this.grasses[y][x].color === this.grasses[y][x+1].color) && (this.grasses[y][x].spawn === this.grasses[y][x+1].spawn) && (this.grasses[y][x+1].x != -3)) {
+						this.markGrass(x+1, y);
+					}
 				}
 			}
 			//this.grasses[y][x].setColor(4);
@@ -642,7 +844,11 @@ class grid {
 		if(this.turnsLeft > 40) {
 			this.turnsLeft = 40;
 		}
-		this.grassEaten = 0;
+		this.scoreMultiplier += this.grassEaten;
+		if(this.scoreMultiplier > 99) {
+			this.scoreMultiplier = 99;
+		}
+		//this.grassEaten = 0;
 	}
 
 	turnsDecrement(turnsReduce = 1) {
@@ -718,22 +924,27 @@ class grid {
 		*/
 		var wolfThreshold = 500;
 		this.wolvesActive = Math.floor(this.score/wolfThreshold);
-		if(this.wolvesActive > 4) {
-			this.wolvesActive = 4;
+		if(this.wolvesActive > this.wolvesMax) {
+			this.wolvesActive = this.wolvesMax;
 		}
 		this.wolvesMovePercent = 3000 + Math.floor(this.score - wolfThreshold*this.wolvesActive)*10;
 		if(this.wolvesMovePercent > 7750) {
 			this.wolvesMovePercent = 7750;
 		}
 		//GRASS
-		this.grassesActive = 1 + Math.floor(this.score/300);
+		this.grassesActive = 4 + Math.floor(this.score/300);
 		if(this.grassesActive > 8) {
 			this.grassesActive = 8;
 		}
 		//AMMO
-		this.gunAmmoPercent = 500 + 250 * this.wolvesActive;
+		this.gunAmmoPercent = 500 + 125 * this.wolvesActive;
 		//MULTIPLIERS
-		this.scoreMultiplier = 1 + this.wolvesActive * this.grassesActive;
-		this.turnsMultiplier = Math.ceil((this.wolvesActive/2 + this.grassesActive/4));
+		//this.scoreMultiplier = 1 + this.wolvesActive * this.grassesActive;
+		if((this.scoreMultiplier > 1) && (this.grassEaten === 0)){
+			this.scoreMultiplier -= 1;
+		}
+		this.grassEaten = 0;
+		//this.turnsMultiplier = Math.ceil((this.wolvesActive/2 + this.grassesActive/4));
+		this.turnsMultiplier = this.shells;
 	}
 }

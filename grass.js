@@ -4,6 +4,7 @@ class grass extends sprite{
         super(x, y);
         this.spriteSet = 5;
         this.color = 0;
+        this.extra = 0;
         this.spawn = 0;
         this.explosion = [0, 1, 2, 3, 4, 5, 6];
     }
@@ -11,12 +12,19 @@ class grass extends sprite{
     setColor(c) {
         this.color = c;
     }
+    setExtra(e) {
+        this.extra = e;
+    }
+    getExtra() {
+        return this.extra;
+    }
     //set color using grid
     eaten(color = -1) {
         if(color != -1) {
             this.setColor(color);
         }
         this.spawn = 5;
+        this.extra = 0;
     }
     //decrement spawn
     spawning() {

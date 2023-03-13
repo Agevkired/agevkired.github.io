@@ -34,13 +34,91 @@ shellSpawn.spriteSet = 5;
 var spawnFrames = [0, 1, 2, 3, 4, 5, 6];
 //
 var titleCowO = new sprite(400,400);
+var wolfShotDemo = new sprite(400,400);
 
+//TEST SPRITE SET LOCATIONS
+var cowSpriteSet = 0;
+var playerUISpriteSet = 1;
+var woflUISpriteSet = 2;
+var wolfNumberSpriteSet = 3;
+var wolfSpriteSet = 4;
+var removalExplosionSpriteSet = 5;
+var grassSpriteSet = {
+	"green": 6,
+	"red": 7,
+	"yellow": 8,
+	"blue": 9,
+	"magenta": 10,
+	"orange": 11,
+	"blue-purple": 12,
+	"gray": 13
+};
+var BGSet = 16*14; //Actual location on sheet. (sprite size * number of sprite sets)
+var keyboardSpriteSet = 15;
+var fenceBGSet = 16*16;
+	/*set numbers
+	*cow: 0
+	*player UI: 1
+	*wolf UI: 2
+	*wolf number: 3
+	*wolf: 4
+	*removal: 5
+	*grass green: 6
+	*red: 7
+	*yellow: 8
+	*blue: 9
+	*magenta: 10
+	*orange: 11
+	*blue-purple: 12
+	*gray: 13
+	*/
 
 function drawTrackSetup() {
 
 }
-//*TITLE
+
+/*****GENERAL DRAW FUNCTIONS 
+*
+*/
+//*GENERAL DRAW SPRITES FUNCTION
+function drawSprite(img, set, number, x, y, mirror=0) {
+	//Use for later if varied sprite size are needed
+	/*
+	if(set === 0) {
+		img.addQueue(0, number*16, 0, 16, 16, x, y, 16, 16, mirror);
+	}*/
+	/*set numbers
+	*cow: 0
+	*player UI: 1
+	*wolf UI: 2
+	*wolf number: 3
+	*wolf: 4
+	*removal: 5
+	*grass green: 6
+	*red: 7
+	*yellow: 8
+	*blue: 9
+	*magenta: 10
+	*orange: 11
+	*blue-purple: 12
+	*gray: 13
+	*/
+	img.addQueue(0, number*16, set*16, 16, 16, x, y, 16, 16, mirror);
+}
+
+//*DRAW VARIOUS UI
+function drawBG(img, number, x, y, set = 0) {
+	//sprite size * number of sprite sets
+	//var sy = 16 * 14;
+	//8x8 BG
+	img.addQueue(0, number*8, BGSet+(8*set), 8, 8, 8*x, 8*y, 8, 8, 0);
+}
+//*****END GENERAL DRAW FUNCTIONS */
+
+
+//*TITLE DRAW FUNCTIONS
 var puzzleScroll = -95;
+var demoScroll = 0;
 function drawTitle(img, state, x1 , y1, x2 = x1 - 22, y2 = y1 + 40) {
 	var t1x = 16 * 6, t1y = 16 * 6; //COW position on sprite sheet
 	//cow = 128x32
@@ -156,56 +234,97 @@ function setPuzzleScrollState(input) {
 		puzzleScroll = 0;
 	}
 }
+function resetTitle() {
+	setPuzzleScrollState(true);
+	shellSpawn.stopAnimation();
+}
+function shiftDemoScroll(reset = false) {
+	if(reset) {
+		demoScroll = 0;
+		return true;
+	}
+	if(demoScroll > -300) {
+		demoScroll -= 2;
+	}
+	else{
+		demoScroll = -300;
+		return true;
+	}
 
-//*GENERAL DRAW SPRITES FUNCTION
-function drawSprite(img, set, number, x, y, mirror=0) {
-	//Use for later if varied sprite size are needed
-	/*
-	if(set === 0) {
-		img.addQueue(0, number*16, 0, 16, 16, x, y, 16, 16, mirror);
-	}*/
-	/*set numbers
-	*cow: 0
-	*player UI: 1
-	*wolf UI: 2
-	*wolf number: 3
-	*wolf: 4
-	*removal: 5
-	*grass green: 6
-	*red: 7
-	*yellow: 8
-	*blue: 9
-	*magenta: 10
-	*orange: 11
-	*blue-purple: 12
-	*gray: 13
-	*/
-	img.addQueue(0, number*16, set*16, 16, 16, x, y, 16, 16, mirror);
+	return false;
+}
+function drawTitleScreen(img, gameState) {
+	var yPos = 56;
+	if(gameState >= 1000) {
+		drawTitle(img, gameState, 144, yPos + demoScroll);
+	}
+	if(gameState === 1003) {
+		if(Math.floor(titleCounter / 25) % 2 === 0) {
+			//drawWord(img, "press space", 19, 19);
+		}
+		//testGrid.drawGrid(img, gridX+50, gridY+140);
+	}
+	if((gameState >= 1004) && (gameState < 1010)) { //animate cow eating title
+		drawTitleCow(img, 144+35, yPos+7);
+	}
+}
+function drawArrowKeys(img, x, y, pressed) {
+	var arrowKeys = 0;
+	//Sprite order: up, down, left, right
+	//               1    2     4     8
+	drawSprite(img, keyboardSpriteSet, arrowKeys   + (4*Number((pressed & 1) > 0)), x+16, y); //UP
+	drawSprite(img, keyboardSpriteSet, arrowKeys+2 + (4*Number((pressed & 4) > 0)), x   , y+11); //LEFT
+	drawSprite(img, keyboardSpriteSet, arrowKeys+1 + (4*Number((pressed & 2) > 0)), x+16, y+11); //DOWN
+	drawSprite(img, keyboardSpriteSet, arrowKeys+3 + (4*Number((pressed & 8) > 0)), x+32, y+11); //RIGHT
+}
+function drawWASDKeys(img, x, y, pressed) {
+	var WASDKeys = 8;
+	//Sprite order: up, down, left, right
+	//               1    2     4     8
+	drawSprite(img, keyboardSpriteSet, WASDKeys   + (4*Number((pressed & 1) > 0)), x+16, y); //UP
+	drawSprite(img, keyboardSpriteSet, WASDKeys+2 + (4*Number((pressed & 4) > 0)), x   , y+11); //LEFT
+	drawSprite(img, keyboardSpriteSet, WASDKeys+1 + (4*Number((pressed & 2) > 0)), x+16, y+11); //DOWN
+	drawSprite(img, keyboardSpriteSet, WASDKeys+3 + (4*Number((pressed & 8) > 0)), x+32, y+11); //RIGHT
+}
+function drawSpaceBar(img, x, y, pressed) {
+	var spaceBar = 18;
+	drawSprite(img, keyboardSpriteSet, spaceBar   + (3*Number((pressed & 1) > 0)), x, y);
+	drawSprite(img, keyboardSpriteSet, spaceBar+1 + (3*Number((pressed & 1) > 0)), x+16, y);
+	drawSprite(img, keyboardSpriteSet, spaceBar+2 + (3*Number((pressed & 1) > 0)), x+32, y);
+}
+function drawWolfShot(img, x, y, state) {
+	var dying = [0,0,0,0,0,0,0,0,0,0,0,0,0,0, 6, 6, 7, 8, 10, 11];
+	wolfShotDemo.animate(dying, 1);
+	drawSprite(img, wolfSpriteSet, wolfShotDemo.spriteNumber, x, y);
+	drawSprite(img, playerUISpriteSet, 6, x, y);
+	drawShells(img, x+16*3, y, 2-Number(wolfShotDemo.spriteNumber > 0));
+	drawFKey(img, x+16*7, y, wolfShotDemo.spriteNumber);
+	//drawShells(img, x+16*4, y, 2);
+}
+function drawFKey(img, x, y, pressed) {
+	var FKey = 16;
+	drawSprite(img, keyboardSpriteSet, FKey + Number(pressed > 0), x, y);
 }
 
-//*DRAW VARIOUS UI
-function drawBG(img, number, x, y) {
-	//sprite size * number of sprite sets
-	var sy = 16 * 14;
-	//8x8 BG
-	img.addQueue(0, number*8, sy, 8, 8, 8*x, 8*y, 8, 8, 0);
-}
 
 function drawFence(img) {
 	//sprite size * number of sprite sets + BG
 	var sy = 16 * 14 + 8;
 	//400x300
-	img.addQueue(0, 0, sy, 400, 300, 0, 0, 400, 300, 0);
+	//img.addQueue(0, 0, sy, 400, 300, 0, 0, 400, 300, 0);
+	//Fence is 300-24 pixels tall, place 24 below origin
+	img.addQueue(0, 0, fenceBGSet, 400, 300-24, 0, 24, 400, 300-24, 0);
+
 }
 
-function drawWord(img, str, x, y, alignment=0) {
+function drawWord(img, str, x, y, alignment=0, shaded=0) {
 	//console.log("Draw Word: ", str, "at", x, y, "length", str.length);
 	for(var i = 0; i < str.length; i++) {
 		var char = str.charCodeAt(i);
 		if(char > 64) {
 			//convert to lower-case
 			var char = (char | 0b00100000) - 87;
-			drawBG(img, char, x + (i*(1-alignment)), y + (i*alignment));
+			drawBG(img, char, x + (i*(1-alignment)), y + (i*alignment), shaded);
 			//console.log("draw word: ", char, x + (i*(1-alignment)), y + (i*alignment));
 		}
 	}
@@ -378,12 +497,17 @@ function drawTurnsLeft(img, turns) {
 		wholeGrass = Math.floor(turns/3);
 	}
 	//draw
-	drawWord(img, "turn", 5, 5);
+	drawWord(img, "turns", 4, 5);
+	drawWord(img, "left", 5, 6);
 	for(var i = 0; i < wholeGrass; i++) {
-		drawSprite(img, 7, 0, 48, 48 + (16*12 - 16*i));
+		drawSprite(img, 7, 0, 48, 56 + (16*12 - 16*i));
 	}
 	if((turns % 3 != 0) && (wholeGrass < 13)) {
-		drawSprite(img, 7, turns % 3, 48, 48 + (16*12 - 16*wholeGrass));
+		drawSprite(img, 7, 3 - turns % 3, 48, 56 + (16*12 - 16*wholeGrass));
+	}
+	if(turns === 1) {
+		drawWord(img, "last", 5, 28);
+		drawWord(img, "turn", 5, 29);
 	}
 }
 
@@ -410,9 +534,10 @@ function drawGainShells(img, shells) {
 	}
 }
 
-function drawShells(img, shells) {
+function drawShells(img, x, y, shells) {
+//function drawShells(img, shells) {
 	for(var i = 0; i < shells; i ++) {
-		drawSprite(img, 1, 4, 320 + (i*16), 240);
+		drawSprite(img, 1, 4, x + (i*16), y);
 	}
 }
 
