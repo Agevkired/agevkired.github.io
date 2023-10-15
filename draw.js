@@ -32,6 +32,8 @@ shellGained.spriteNumber = 6;
 var shellSpawn = new sprite(400,400);
 shellSpawn.spriteSet = 5;
 var spawnFrames = [0, 1, 2, 3, 4, 5, 6];
+var burstAnimation = new sprite(10,10);
+burstAnimation.spriteSet = 5;
 //
 var titleCowO = new sprite(400,400);
 var wolfShotDemo = new sprite(400,400);
@@ -120,11 +122,11 @@ function drawBG(img, number, x, y, set = 0) {
 var puzzleScroll = -95;
 var demoScroll = 0;
 function drawTitle(img, state, x1 , y1, x2 = x1 - 22, y2 = y1 + 40) {
-	var t1x = 16 * 6, t1y = 16 * 6; //COW position on sprite sheet
+	var t1x = 16 * 12, t1y = 16 * 6; //COW position on sprite sheet
 	//cow = 128x32
 	var cowPosition = [0, 28, 58, 76];
 	var cowLength  = [28, 30, 28, 42];
-	var t2x = 16 * 6, t2y = 16 * 8; //PUZZLE position on sprite sheet
+	var t2x = 16 * 12, t2y = 16 * 8; //PUZZLE position on sprite sheet
 	//176x32              P   U   Z   Z   L    E
 	var puzzlePosition = [0, 27, 57, 86, 115, 143, 170];
 	var puzzleLength  = [27, 30, 29, 29, 28,  27, 6];
@@ -412,14 +414,14 @@ function setTrack(track) {
 	wolfTrackOld = [...track];
 }
 function drawTrack(img, track, active) {
-	var wolfTrackIcon = [20, 2, 3, 4];
+	var wolfTrackIcon = [20, 2, 3, 4, 7]; //blank, lr, ud, shells (different row), snake
 	//Sticks/Dividers
 	for(var i = 0; i < 9; i++) {
 		drawSprite(img, 2, 4, 320, 48+8+(16*i) + wolfTrackScroll); //draw sticks/dividers
 	}
 	//Icons
 	for(var i = 0; i < 10; i++) {
-		if(wolfTrackOld[i] === 3) {
+		if(wolfTrackOld[i] === 3) { //if shells
 			drawSprite(img, 1, 4, 320, 48+(16*i) + wolfTrackScroll); //icons on track
 		}
 		else {
@@ -505,9 +507,19 @@ function drawTurnsLeft(img, turns) {
 	if((turns % 3 != 0) && (wholeGrass < 13)) {
 		drawSprite(img, 7, 3 - turns % 3, 48, 56 + (16*12 - 16*wholeGrass));
 	}
-	if(turns === 1) {
+	if(turns <= 0) {
+		drawWord(img, "out", 5, 27);
+		drawWord(img, "of", 6, 28);
+		drawWord(img, "turns", 4, 29);
+	}
+	else if(turns === 1) {
+		drawWord(img, "make", 5, 27);
+		drawWord(img, "it", 6, 28);
+		drawWord(img, "count", 5, 29);
+	}
+	else if(turns <= 3) {
 		drawWord(img, "last", 5, 28);
-		drawWord(img, "turn", 5, 29);
+		drawWord(img, "mooove", 4, 29);
 	}
 }
 
@@ -562,6 +574,17 @@ function drawGrassOut(img, grs = 1) {
 	}
 }
 
+function drawBurst(img, reset = 0, x, y) {
+	if(reset) {
+		burstAnimation.stopAnimation();
+		burstAnimation.setCoord(x,y);
+	}
+	if(burstAnimation.animate(spawnFrames, 0, 0, 0)) {
+		return 1;
+	}
+	drawSprite(img, burstAnimation.spriteSet, burstAnimation.spriteNumber, burstAnimation.x, burstAnimation.y);
+	return 0;
+}
 
 /*
 //Draw a word using sprites

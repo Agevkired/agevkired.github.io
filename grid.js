@@ -53,13 +53,16 @@ class grid {
 		this.scoreMultiplier = 1;
 		this.turnsLeft = 30;
 		this.turnsMultiplier = 1;
+		this.trackPercent = [0, 0, 0, 0]; //percent occurrences for wolves, ammo, snake
 		//****wolves
 		this.wolvesActive = 0;
-		this.wolvesMovePercent = 0;
-		this.gunAmmoPercent = 1;
+		this.trackPercent[0] = 0;
+		this.trackPercent[1] = 1;
 		this.playerActive = 0; //player idle
 		this.deathPenalty = 10;
 		this.grassesActive = 1;
+		this.snakesActive = 0;
+		this.maxSnakesActive = 2;
 		//sprites
 		this.cowSprites = 0;
 		this.wolfNumberSprites = 3;
@@ -200,6 +203,7 @@ class grid {
 		this.turnsLeft = 30;
 		this.shells = 1;
 		this.wolfTrack = [0,0,1,2,3, 0,0,0,0,0]; //10
+		this.trackPercent = [0, 0, 0, 0];
 		if(demo) {
 			//this.hiscore -= this.score;
 			if(this.hiscore < 0) {
@@ -217,6 +221,22 @@ class grid {
 		}
 		this.scoreMultiplier = 1;
 		this.manageDifficulty();
+	}
+
+	gridCheckValidInput(moveX, moveY, shiftC, shiftR, eating, fire) {
+		//test valid movement
+		var x = testGrid.cowX + moveX;
+		var y = testGrid.cowY + moveY;
+		if((x < 0) || (x > this.x-1) || (y < 0) || (y > this.y-1)) {
+			return false;
+		}
+		//test valid eating
+		if(this.grasses[y][x].spawn === 0) {
+			if(this.grasses[y][x].getExtra() != 1) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	//**COW/PLAYER FUNCTIONS */
@@ -355,6 +375,40 @@ class grid {
 				this.grasses[j][i].spawning();
 			}
 		}
+		var row = -1;
+		var col = -1;
+		if(this.wolfTrack[0] === 4) {
+			if(this.snakesActive < this.maxSnakesActive) {
+				var clear = true;
+				do {
+					row = Math.floor(Math.random() * 10);
+					col = Math.floor(Math.random() * 10);
+					clear = true;
+					for(var i = 0; i < this.wolvesMax; i++) {
+						if((row === this.wolvesY[i]) && (col === this.wolvesX[i])) {
+							clear = false;
+						}
+					}
+					if((row === this.cowY) && (col === this.cowX)) {
+						clear = false;
+					}
+					if(this.grasses[row][col].extra > 0) {
+						clear = false;
+					}
+					if(clear) {
+						this.grasses[row][col].extra = 1;
+					}
+				} while(!clear);
+				console.log("Snakes placed: row: ", row, ", column: ", col);
+				this.snakesActive += 1;
+				//FIX HERE
+			}
+			this.wolfTrack[0] = 0;
+		}
+		if(row > -1) {
+			return [this.grasses[row][col].x, this.grasses[row][col].y + 2];
+		}
+		return [-1,-1];
 	}
 
 	setGrass(x, y, color) {
@@ -596,15 +650,27 @@ class grid {
 			}
 			//this.wolfTrack[9] = Math.floor(Math.random()*4);
 			console.log(selection);
-			if(selection < this.wolvesMovePercent) {
+			var pTotal = 0;
+			this.wolfTrack[9] = 0;
+			for(var i = 0; i < this.trackPercent.length; i++) {
+			//for(var i = 0; i < 3; i++) {
+				pTotal += this.trackPercent[i];
+				if(selection < pTotal) {
+					this.wolfTrack[9] = i+1;
+					break;
+				}
+			}
+			/*
+			if(selection < this.trackPercent[0]) {
 				this.wolfTrack[9] = selection % 2 + 1;
 			}
-			else if(selection < this.gunAmmoPercent + this.wolvesMovePercent) {
+			else if(selection < this.trackPercent[1] + this.trackPercent[0]) {
 				this.wolfTrack[9] = 3;
 			}
 			else {
 				this.wolfTrack[9] = 0;
 			}
+			*/
 		}
 	}
 	wolfSpawn(wolfIn) {
@@ -819,6 +885,9 @@ class grid {
 					}
 				}
 			}
+			else {
+				this.snakesActive -= 1;
+			}
 			//this.grasses[y][x].setColor(4);
 			this.grasses[y][x].eaten(Math.floor(Math.random()*100*this.grassesActive)%this.grassesActive); //SET COLOR HERE
 			this.grasses[y][x].x = x*this.space+this.offset;
@@ -851,7 +920,16 @@ class grid {
 		//this.grassEaten = 0;
 	}
 
+	turnsIncrement(turnsIncrease = 1) {
+		this.turnsLeft += turnsIncrease;
+	}
+
 	turnsDecrement(turnsReduce = 1) {
+		//decrement without bringing up GAME OVER
+		if(turnsReduce < 0) {
+			this.turnsLeft -= -turnsReduce;
+			return false;
+		}
 		this.turnsLeft -= turnsReduce;
 		if(this.turnsLeft < 1) {
 			console.log("GAME OVER");
@@ -922,22 +1000,27 @@ class grid {
 			this.wolvesActive += 1;
 		}
 		*/
-		var wolfThreshold = 500;
+		var wolfThreshold = 500; //every this amount of point, wolves increase
 		this.wolvesActive = Math.floor(this.score/wolfThreshold);
 		if(this.wolvesActive > this.wolvesMax) {
 			this.wolvesActive = this.wolvesMax;
 		}
-		this.wolvesMovePercent = 3000 + Math.floor(this.score - wolfThreshold*this.wolvesActive)*10;
-		if(this.wolvesMovePercent > 7750) {
-			this.wolvesMovePercent = 7750;
+		this.trackPercent[0] = 1500 + Math.floor(this.score - wolfThreshold*this.wolvesActive)*10;
+		if(this.trackPercent[0] > 3000) {
+			this.trackPercent[0] = 3000;
 		}
+		this.trackPercent[1] = this.trackPercent[0];
+		//AMMO
+		this.trackPercent[2] = 500 + 125 * this.wolvesActive;
+		//SNAKES
+		this.trackPercent[3] = 1500;
+
 		//GRASS
 		this.grassesActive = 4 + Math.floor(this.score/300);
 		if(this.grassesActive > 8) {
 			this.grassesActive = 8;
 		}
-		//AMMO
-		this.gunAmmoPercent = 500 + 125 * this.wolvesActive;
+
 		//MULTIPLIERS
 		//this.scoreMultiplier = 1 + this.wolvesActive * this.grassesActive;
 		if((this.scoreMultiplier > 1) && (this.grassEaten === 0)){

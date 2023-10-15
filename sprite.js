@@ -24,7 +24,7 @@ class sprite {
 	}
 	//returns 1 if animation ended, 2 if looped specified amount
     animate(animation, animationDelay = 0, loopFrame = 0, loopAmount = -1) { //higher animationDelay is slower, every x frame
-        var isLastFrame = 0;
+        var isLastFrame = 0; //1=last frame, 2=last frame and loop
 		//console.log("BEFORE currentframe", this.currentFrame, "spritenumber", this.spriteNumber, "animation length", animation.length);
 		//console.log("isLastFrame", isLastFrame, "loopcounter", this.loopCounter, "loopamount", loopAmount);
 		if(this.animationDelayCounter >= animationDelay) {

@@ -207,17 +207,33 @@ var entry = setInterval(function(){
 						}
 						*/
 						if(moveX + moveY + shiftC + shiftR + eating + fire != 0) {
-							gameState = 1;
+							gameState = -1;
+							//testGrid.turnsDecrement(-1);
 						}
 						break;
 					}
 				}
 				break;
-			case 1: //resolve input
-				if(moveX + moveY + shiftC + shiftR + eating + fire === 0) {
-					testGrid.wolfTrackMove();
-					gameState = 2;
+			/*
+			case 1: //check if input is valid 
+			*/
+			/*DEVELOPING NEW SECTION
+			case 1:
+				if(testGrid.checkInput(moveX, moveY, shiftC, shiftR, eating, fire)) {
+					gameState = 2; //resolve input
 				}
+				else {
+					moveX = 0;
+					moveY = 0;
+					shiftC = 0;
+					shiftR = 0;
+					eating = 0;
+					fire = 0;
+					gameState = 0;
+				}
+				break;
+			*/
+			case -1: //resolve input (testing)
 				if((moveX + moveY) != 0){
 					switch (testGrid.cowMove(testGrid.cowX + moveX, testGrid.cowY + moveY)) {
 						case 0:
@@ -252,6 +268,8 @@ var entry = setInterval(function(){
 						else {
 							eating = 0;
 							gameState = 0;
+							//Refund wasted turn
+							//testGrid.turnsIncrement();
 						}
 					}
 					else if (eating > 32) {
@@ -282,6 +300,100 @@ var entry = setInterval(function(){
 						if(a > 0) {
 							fire = 0;
 							gameState = 0;
+							//Refund wasted turn
+							//testGrid.turnsIncrement();
+						}
+					}
+				}
+				if(moveX + moveY + shiftC + shiftR + eating + fire != 0) {
+					if((eating > 0) || (fire > 0)) {
+						//testGrid.turnsDecrement();
+					}
+					else if((moveX != 0) || (moveY != 0)) {
+						testGrid.turnsDecrement(3);
+					}
+					else {
+						testGrid.turnsDecrement();
+					}
+					gameState = 1;
+				}
+				break;
+
+			case 1: //resolve input
+				if(moveX + moveY + shiftC + shiftR + eating + fire === 0) {
+					testGrid.wolfTrackMove();
+					gameState = 2;
+				}
+				if((moveX + moveY) != 0){
+					switch (testGrid.cowMove(testGrid.cowX + moveX, testGrid.cowY + moveY)) {
+						case 0:
+							moveX = 0;
+							moveY = 0;
+							gameState = 0;
+							//Refund wasted turn
+							//testGrid.turnsIncrement();
+							break;
+						case 2:
+							moveX = 0;
+							moveY = 0;
+							break;
+					}
+				}
+				else if(shiftC != 0) {
+					if(testGrid.shiftColumn(testGrid.cowX, shiftC - 1)) {
+						shiftC = 0;
+						gameState = 6;
+					}
+				}
+				else if(shiftR != 0) {
+					if(testGrid.shiftRow(testGrid.cowY, shiftR - 1)) {
+						shiftR = 0;
+						gameState = 6;
+					}
+				}
+				else if(eating != 0) {
+					if(eating === 1) {
+						if(testGrid.markGrass(testGrid.cowX, testGrid.cowY)) {
+							testGrid.markResolve();
+							eating += 1;
+						}
+						else {
+							eating = 0;
+							gameState = 0;
+							//Refund wasted turn
+							//testGrid.turnsIncrement();
+						}
+					}
+					else if (eating > 32) {
+						eating = 0;
+						//gameState = 2;
+					}
+					else {
+						testGrid.cowEating();
+						eating += 1;
+					}
+					//testGrid.cowEating();
+					//gameState = 2;
+				}
+				else if(fire != 0) {
+					console.log("fire", fire);
+					if(fire === 1) {
+						if(testGrid.gunFire() != -1){ //fire at closest wolf or lower number if tie
+							fire = 2;
+						}
+						else {
+							gameState = 0; //return to input to not waste player's turn
+							fire = 0;
+						}
+					}
+					else if(fire === 2) {
+						var a = testGrid.wolfShot();
+						console.log("fire-2", a);
+						if(a > 0) {
+							fire = 0;
+							gameState = 0;
+							//Refund wasted turn
+							//testGrid.turnsIncrement();
 						}
 					}
 				}
@@ -339,11 +451,15 @@ var entry = setInterval(function(){
 				}
 				*/
 				break;
-			case 6:
+			case 6: //
 				gameState = 0;
-				testGrid.grassSpawn();
+				var gExtraCoord = testGrid.grassSpawn(); //SNAKE SPAWNS HERE
+				if(gExtraCoord[0] > -1) {
+					drawBurst(img, 1, gExtraCoord[0]+gridX, gExtraCoord[1]+gridY);
+				}
+				
 				testGrid.manageDifficulty();
-				if(testGrid.turnsDecrement()){
+				if(testGrid.turnsDecrement(0)){
 					titleCounter = 0;
 					gameState = 50;
 				}
@@ -677,6 +793,7 @@ var entry = setInterval(function(){
 		//DRAW GRASS OUT
 		drawGrassOut(img, testGrid.grassesActive);
 		drawWord(img, "next", 43, 5);
+		drawBurst(img);
 		/*
 		drawSprite(img, 6, 0, 352, 48);
 		for(var i = 0; i < 8; i++) {
@@ -685,8 +802,9 @@ var entry = setInterval(function(){
 		*/
 		
 		
-		/*
 		//TEST SPRITES
+		//drawSprite(img, 2, 7, 16, 16);
+		/*
 		testWolf.setCoord(0, 24);
 		if(testWolf.spawn === 0) {
 			if(testWolf.spawningAnimation() > 1) {
