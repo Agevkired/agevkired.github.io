@@ -375,14 +375,12 @@ class grid {
 				this.grasses[j][i].spawning();
 			}
 		}
-		var row = -1;
-		var col = -1;
 		if(this.wolfTrack[0] === 4) {
 			if(this.snakesActive < this.maxSnakesActive) {
 				var clear = true;
 				do {
-					row = Math.floor(Math.random() * 10);
-					col = Math.floor(Math.random() * 10);
+					var row = Math.floor(Math.random() * 10);
+					var col = Math.floor(Math.random() * 10);
 					clear = true;
 					for(var i = 0; i < this.wolvesMax; i++) {
 						if((row === this.wolvesY[i]) && (col === this.wolvesX[i])) {
@@ -405,10 +403,6 @@ class grid {
 			}
 			this.wolfTrack[0] = 0;
 		}
-		if(row > -1) {
-			return [this.grasses[row][col].x, this.grasses[row][col].y + 2];
-		}
-		return [-1,-1];
 	}
 
 	setGrass(x, y, color) {
@@ -733,6 +727,8 @@ class grid {
 				done += this.wolves[i].dyingAnimation();
 				if(done > 0) {
 					this.score += this.scoreMultiplier;
+					this.wolvesX[i] = 20;
+					this.wolvesY[i] = 20; 
 				}
 				console.log("done", done, i);
 			}
