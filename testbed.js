@@ -453,11 +453,7 @@ var entry = setInterval(function(){
 				break;
 			case 6: //
 				gameState = 0;
-				var gExtraCoord = testGrid.grassSpawn(); //SNAKE SPAWNS HERE
-				if(gExtraCoord[0] > -1) {
-					drawBurst(img, 1, gExtraCoord[0]+gridX, gExtraCoord[1]+gridY);
-				}
-				
+				testGrid.grassSpawn();
 				testGrid.manageDifficulty();
 				if(testGrid.turnsDecrement(0)){
 					titleCounter = 0;
@@ -793,7 +789,6 @@ var entry = setInterval(function(){
 		//DRAW GRASS OUT
 		drawGrassOut(img, testGrid.grassesActive);
 		drawWord(img, "next", 43, 5);
-		drawBurst(img);
 		/*
 		drawSprite(img, 6, 0, 352, 48);
 		for(var i = 0; i < 8; i++) {
